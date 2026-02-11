@@ -101,7 +101,7 @@ def get_agent():
     # Create chat client
     chat_client = OpenAIChatClient(
         async_client=openai_client,
-        model_id="cohere/cohere-command-a"  # Using GPT-4o for good text generation
+        model_id="meta/llama-3.3-70b-instruct"  # Using GPT-4o for good text generation
     )
 
     # Create the cooking assistant agent

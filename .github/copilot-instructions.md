@@ -1,57 +1,28 @@
 - [x] Verify that the copilot-instructions.md file in the .github directory is created.
-  <!-- File created successfully in .github directory. -->
 
 - [x] Clarify Project Requirements
-	<!-- Project requirements are clear: Python AI agent app for cooking recipes using GitHub models, with recipe search and ingredient extraction features, as an interactive console application. -->
 
 - [x] Scaffold the Project
-	<!-- Project scaffolded: Created main.py with agent code, requirements.txt, .env, README.md. Used Python virtual environment. -->
 
 - [x] Customize the Project
-	<!-- Codebase customized with cooking agent features: recipe search and ingredient extraction tools, interactive console interface. -->
 
 - [x] Install Required Extensions
-	<!-- Extensions already installed: ms-python.python, ms-python.vscode-python-envs. -->
 
 - [x] Compile the Project
-	<!-- Dependencies installed, code validated for syntax errors. -->
 
 - [x] Customize the Project
-	<!-- Already completed in previous step. -->
-	<!--
-	Verify that all previous steps have been completed successfully and you have marked the step as completed.
-	Develop a plan to modify codebase according to user requirements.
-	Apply modifications using appropriate tools and user-provided references.
-	Skip this step for "Hello World" projects.
-	-->
 
 - [x] Install Required Extensions
-	<!-- Already completed. -->
-	<!-- ONLY install extensions provided mentioned in the get_project_setup_info. Skip this step otherwise and mark as completed. -->
 
 - [x] Compile the Project
-	<!-- Dependencies installed, code validated for syntax errors. -->
-	<!--
-	Verify that all previous steps have been completed.
-	Install any missing dependencies.
-	Run diagnostics and resolve any issues.
-	Check for markdown files in project folder for relevant instructions on how to do this.
-	-->
 
 - [x] Create and Run Task
-	<!-- No task needed for this Python console application. -->
 
 - [x] Launch the Project
-	<!-- To launch: Set GITHUB_TOKEN in .env, then run 'python main.py' in terminal. -->
 
-- [ ] Ensure Documentation is Complete
-	<!--
-	Verify that all previous steps have been completed.
-	Verify that README.md and the copilot-instructions.md file in the .github directory exists and contains current project information.
-	Clean up the copilot-instructions.md file in the .github directory by removing all HTML comments.
-	 -->
+- [x] Ensure Documentation is Complete
+	<!-- Documentation completed: README.md and copilot-instructions.md verified and updated. HTML comments removed from copilot-instructions.md. -->
 
-<!--
 ## Execution Guidelines
 PROGRESS TRACKING:
 - If any tools are available to manage the above todo list, use it to track progress through this checklist.
@@ -98,7 +69,6 @@ TASK COMPLETION RULES:
   - User is provided with clear instructions to debug/launch the project
 
 Before starting a new task in the above plan, update progress in the plan.
--->
 - Work through each checklist item systematically.
 - Keep communication concise and focused.
 - Follow development best practices.

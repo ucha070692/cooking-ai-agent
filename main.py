@@ -10,6 +10,11 @@ import streamlit as st
 # Load environment variables
 load_dotenv()
 
+# Common ingredient constants (to reduce duplication warnings)
+FLOUR_500G = "500g flour"
+ONIONS_2 = "2 onions"
+CORIANDER_FRESH = "Fresh coriander"
+
 # Recipe database
 recipes_db = {
     'chicken': [
@@ -43,14 +48,14 @@ recipes_db = {
     'ხაჭაპური': [  # Georgian cheese bread
         {
             'name': 'იმერული ხაჭაპური (Imeruli Khachapuri)',
-            'ingredients': ['500g flour', '300g sulguni cheese', '200ml milk', '50g butter', '1 egg', '1 tsp sugar', 'Salt to taste'],
+            'ingredients': [FLOUR_500G, '300g sulguni cheese', '200ml milk', '50g butter', '1 egg', '1 tsp sugar', 'Salt to taste'],
             'instructions': 'Mix dough with flour, milk, egg, sugar, salt. Roll out, add cheese filling, fold and bake at 200°C for 20 minutes.',
             'cuisine': 'Georgian',
             'image': 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=400&h=300&fit=crop'
         },
         {
             'name': 'მეგრული ხაჭაპური (Megruli Khachapuri)',
-            'ingredients': ['500g flour', '400g sulguni cheese', '100g butter', '1 egg', '200ml milk', 'Salt to taste'],
+            'ingredients': [FLOUR_500G, '400g sulguni cheese', '100g butter', '1 egg', '200ml milk', 'Salt to taste'],
             'instructions': 'Make dough, fill with cheese, fold into boat shape, add butter on top. Bake at 220°C for 15-20 minutes.',
             'cuisine': 'Georgian',
             'image': 'https://images.unsplash.com/photo-1579954115566-e66808b81b2e?w=400&h=300&fit=crop'
@@ -59,7 +64,7 @@ recipes_db = {
     'ხინკალი': [  # Georgian dumplings
         {
             'name': 'ხინკალი (Khinkali)',
-            'ingredients': ['500g ground meat (pork/beef mix)', '2 onions', '500g flour', '200ml water', 'Salt, pepper, coriander'],
+            'ingredients': ['500g ground meat (pork/beef mix)', ONIONS_2, FLOUR_500G, '200ml water', 'Salt, pepper, coriander'],
             'instructions': 'Make dough, fill with spiced meat mixture, twist dumplings, boil for 10-15 minutes. Eat by hand, drink juice first!',
             'cuisine': 'Georgian',
             'image': 'https://images.unsplash.com/photo-1551782450-17144efb5723?w=400&h=300&fit=crop'
@@ -75,14 +80,14 @@ recipes_db = {
         },
         {
             'name': 'ბადრიჯანი (Badrijan) - Eggplant Rolls',
-            'ingredients': ['4 eggplants', '200g walnuts', '3 cloves garlic', 'Fresh coriander', 'Sunflower oil', 'Salt'],
+            'ingredients': ['4 eggplants', '200g walnuts', '3 cloves garlic', CORIANDER_FRESH, 'Sunflower oil', 'Salt'],
             'instructions': 'Grill eggplants, roll with walnut-garlic paste, serve cold.',
             'cuisine': 'Georgian',
             'image': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop'
         },
         {
             'name': 'ლობიო (Lobio) - Bean Stew',
-            'ingredients': ['500g red beans', '2 onions', '3 cloves garlic', 'Fresh coriander', 'Sunflower oil', 'Adjika (Georgian spice)', 'Salt'],
+            'ingredients': ['500g red beans', ONIONS_2, '3 cloves garlic', CORIANDER_FRESH, 'Sunflower oil', 'Adjika (Georgian spice)', 'Salt'],
             'instructions': 'Soak beans overnight, cook with onions, garlic, spices. Mash slightly and serve hot.',
             'cuisine': 'Georgian',
             'image': 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop'
@@ -91,7 +96,7 @@ recipes_db = {
     'ქართული': [  # Georgian cuisine
         {
             'name': 'ოჯახური ხარჩო (Ojakhuri Kharcho) - Beef Soup',
-            'ingredients': ['500g beef', '2 onions', '3 potatoes', '2 tbsp tkemali (plum sauce)', 'Fresh coriander', 'Black pepper', 'Bay leaves'],
+            'ingredients': ['500g beef', ONIONS_2, '3 potatoes', '2 tbsp tkemali (plum sauce)', CORIANDER_FRESH, 'Black pepper', 'Bay leaves'],
             'instructions': 'Cook beef, add onions, potatoes, spices. Simmer for 1.5 hours. Serve with fresh bread.',
             'cuisine': 'Georgian',
             'image': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop'
@@ -125,18 +130,30 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
     # Check for Georgian keywords
     georgian_keywords = ['ხაჭაპური', 'ხინკალი', 'საჭმელი', 'ქართული', 'იმერული']
     if any(keyword in query_lower for keyword in georgian_keywords):
-        results = []
-        for key in recipes_db:
-            if key in georgian_keywords:
-                for recipe in recipes_db[key]:
-                    results.append(recipe)
+        results = _search_georgian_recipes(georgian_keywords)
     else:
-        # Search by ingredients or keywords
-        results = []
-        for category, recipes in recipes_db.items():
-            if category in query_lower:
-                results.extend(recipes)
+        results = _search_by_category(query_lower)
 
+    return _format_recipe_response(results, query)
+
+def _search_georgian_recipes(georgian_keywords):
+    """Search for Georgian recipes."""
+    results = []
+    for key in recipes_db:
+        if key in georgian_keywords:
+            results.extend(recipes_db[key])
+    return results
+
+def _search_by_category(query_lower):
+    """Search recipes by category."""
+    results = []
+    for category, recipes in recipes_db.items():
+        if category in query_lower:
+            results.extend(recipes)
+    return results
+
+def _format_recipe_response(results, query):
+    """Format the recipe search response."""
     if results:
         response = f"Found {len(results)} recipe(s) for '{query}':\n\n"
         for i, recipe in enumerate(results, 1):
@@ -187,7 +204,8 @@ Always respond in a helpful and engaging way, using emojis where appropriate."""
         st.error(f"Failed to initialize AI agent: {e}")
         st.stop()
 
-def main():
+def setup_page_config():
+    """Configure the Streamlit page settings."""
     st.set_page_config(
         page_title="🍳 Cooking AI Agent",
         page_icon="🍳",
@@ -195,13 +213,8 @@ def main():
         initial_sidebar_state="expanded"
     )
 
-    st.title("🍳 Cooking AI Agent")
-    st.write("Chat with me about recipes, ingredients, or cooking tips!")
-
-    # Initialize agent first
-    agent = get_agent()
-
-    # Sidebar with quick options
+def setup_sidebar(agent):
+    """Set up the sidebar with quick recipe options and controls."""
     with st.sidebar:
         st.header("🎯 Quick Recipe Ideas")
         st.write("Try these searches:")
@@ -229,20 +242,21 @@ def main():
             st.session_state.thread = agent.get_new_thread()
             st.rerun()
 
-    # Session state for conversation
+def initialize_session_state(agent):
+    """Initialize session state variables."""
     if 'messages' not in st.session_state:
         st.session_state.messages = []
     if 'thread' not in st.session_state:
         st.session_state.thread = agent.get_new_thread()
 
-    # Chat interface
-    st.subheader("💬 Chat with the Cooking Assistant")
-
-    # Display chat history
+def display_chat_history():
+    """Display the chat message history."""
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+def get_user_input():
+    """Get user input from text field and send button."""
     # Handle quick queries from sidebar
     if 'quick_query' in st.session_state and st.session_state.quick_query:
         initial_value = st.session_state.quick_query
@@ -264,58 +278,88 @@ def main():
     with col2:
         send_button = st.button("Send 📤", use_container_width=True)
 
+    return user_input, send_button
+
+def process_user_message(user_input, agent):
+    """Process user input and generate AI response."""
+    prompt = user_input.strip()
+
+    # Add user message to history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Get agent response
+    with st.chat_message("assistant"):
+        with st.spinner("👨‍🍳 Cooking up an answer..."):
+            try:
+                result = asyncio.run(agent.run(prompt, thread=st.session_state.thread))
+                response = result.text
+                st.markdown(response)
+
+                # Check if response contains recipes and display images
+                if "Found" in response and "recipe" in response.lower():
+                    display_recipe_gallery(response)
+
+                # Add assistant message to history
+                st.session_state.messages.append({"role": "assistant", "content": response})
+            except Exception as e:
+                error_msg = f"😞 An error occurred: {e}"
+                st.error(error_msg)
+                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+def display_recipe_gallery(response):
+    """Display recipe gallery with images when recipes are found."""
+    st.markdown("---")
+    st.subheader("📸 Recipe Gallery")
+
+    # Extract recipe names from response (simple parsing)
+    recipe_names = []
+    for line in response.split('\n'):
+        if '**Recipe' in line and ':' in line:
+            name = line.split(':')[1].split('**')[0].strip()
+            recipe_names.append(name)
+
+    # Display recipe cards with images
+    if recipe_names:
+        cols = st.columns(min(len(recipe_names), 3))
+        for i, name in enumerate(recipe_names):
+            with cols[i % 3]:
+                # Find the recipe data
+                for category, recipes in recipes_db.items():
+                    for recipe in recipes:
+                        if recipe['name'] in name or name in recipe['name']:
+                            if 'image' in recipe and recipe['image'].startswith('http'):
+                                st.image(recipe['image'], caption=recipe['name'], use_column_width=True)
+                                break
+                            break
+                    else:
+                        continue
+                    break
+
+def main():
+    setup_page_config()
+
+    st.title("🍳 Cooking AI Agent")
+    st.write("Chat with me about recipes, ingredients, or cooking tips!")
+
+    # Initialize agent first
+    agent = get_agent()
+
+    setup_sidebar(agent)
+    initialize_session_state(agent)
+
+    # Chat interface
+    st.subheader("💬 Chat with the Cooking Assistant")
+
+    display_chat_history()
+
+    # Get user input
+    user_input, send_button = get_user_input()
+
     # Process input
     if send_button and user_input.strip():
-        prompt = user_input.strip()
-
-        # Add user message to history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Get agent response
-        with st.chat_message("assistant"):
-            with st.spinner("👨‍🍳 Cooking up an answer..."):
-                try:
-                    result = asyncio.run(agent.run(prompt, thread=st.session_state.thread))
-                    response = result.text
-                    st.markdown(response)
-
-                    # Check if response contains recipes and display images
-                    if "Found" in response and "recipe" in response.lower():
-                        st.markdown("---")
-                        st.subheader("📸 Recipe Gallery")
-
-                        # Extract recipe names from response (simple parsing)
-                        recipe_names = []
-                        for line in response.split('\n'):
-                            if '**Recipe' in line and ':' in line:
-                                name = line.split(':')[1].split('**')[0].strip()
-                                recipe_names.append(name)
-
-                        # Display recipe cards with images
-                        if recipe_names:
-                            cols = st.columns(min(len(recipe_names), 3))
-                            for i, name in enumerate(recipe_names):
-                                with cols[i % 3]:
-                                    # Find the recipe data
-                                    for category, recipes in recipes_db.items():
-                                        for recipe in recipes:
-                                            if recipe['name'] in name or name in recipe['name']:
-                                                if 'image' in recipe and recipe['image'].startswith('http'):
-                                                    st.image(recipe['image'], caption=recipe['name'], use_column_width=True)
-                                                    break
-                                                break
-                                        else:
-                                            continue
-                                        break
-
-                    # Add assistant message to history
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-                except Exception as e:
-                    error_msg = f"😞 An error occurred: {e}"
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+        process_user_message(user_input, agent)
 
 if __name__ == "__main__":
     main()

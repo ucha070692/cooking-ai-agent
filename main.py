@@ -334,28 +334,10 @@ def setup_page_config():
     )
 
 def setup_sidebar(agent):
-    """Set up the sidebar with quick recipe options and controls."""
+    """Set up the sidebar with controls."""
     with st.sidebar:
-        st.header("🎯 Quick Recipe Ideas")
-        st.write("Try these searches:")
-
-        # Quick search buttons with broader terms
-        quick_searches = {
-            "🍗 Chicken Dishes": "chicken recipes",
-            "🍝 Pasta Dishes": "pasta recipes",
-            "🇬🇪 Georgian Food": "georgian cuisine",
-            "🧀 Khachapuri": "khachapuri",
-            "🥟 Khinkali": "khinkali",
-            "🥩 Meat Dishes": "meat dishes",
-            "🥕 Vegetarian": "vegetarian recipes",
-            "🧀 Cheese Dishes": "cheese recipes",
-            "🍅 Italian Food": "italian cuisine",
-            "🥢 Asian Food": "asian cuisine"
-        }
-
-        for button_text, search_query in quick_searches.items():
-            if st.button(button_text):
-                st.session_state.quick_query = search_query
+        st.header("🍳 Cooking Assistant")
+        st.write("Your AI cooking companion!")
 
         st.divider()
         st.write("💡 **Tips:**")
@@ -385,22 +367,12 @@ def display_chat_history():
 
 def get_user_input():
     """Get user input from text field and send button."""
-    # Handle quick queries from sidebar
-    if 'quick_query' in st.session_state and st.session_state.quick_query:
-        initial_value = st.session_state.quick_query
-        st.session_state.quick_query = None  # Reset after use
-        input_key = f"user_input_{len(st.session_state.messages)}"  # Unique key to clear
-    else:
-        initial_value = ""
-        input_key = "user_input"
-
     # Chat input with text input and button
     col1, col2 = st.columns([4, 1])
     with col1:
         user_input = st.text_input(
             "Type your cooking question:",
-            value=initial_value,
-            key=input_key,
+            key="user_input",
             placeholder="Ask about recipes, ingredients, or cooking tips..."
         )
     with col2:

@@ -123,16 +123,16 @@ def extract_ingredients(recipe_text: Annotated[str, "The recipe text to extract 
 
 def search_recipes(query: Annotated[str, "Keywords or ingredients to search for recipes."]) -> str:
     """
-    Search for recipes based on query.
+    Search for recipes based on query with intelligent matching.
     """
     query_lower = query.lower()
 
-    # Check for Georgian keywords
-    georgian_keywords = ['ხაჭაპური', 'ხინკალი', 'საჭმელი', 'ქართული', 'იმერული']
+    # Check for Georgian keywords first
+    georgian_keywords = ['ხაჭაპური', 'ხინკალი', 'საჭმელი', 'ქართული', 'იმერული', 'georgian', 'georgia']
     if any(keyword in query_lower for keyword in georgian_keywords):
         results = _search_georgian_recipes(georgian_keywords)
     else:
-        results = _search_by_category(query_lower)
+        results = _search_intelligent(query_lower)
 
     return _format_recipe_response(results, query)
 
@@ -140,16 +140,129 @@ def _search_georgian_recipes(georgian_keywords):
     """Search for Georgian recipes."""
     results = []
     for key in recipes_db:
-        if key in georgian_keywords:
+        if key in georgian_keywords or key in ['ხაჭაპური', 'ხინკალი', 'საჭმელი', 'ქართული']:
             results.extend(recipes_db[key])
     return results
 
-def _search_by_category(query_lower):
-    """Search recipes by category."""
+def _search_intelligent(query_lower):
+    """Intelligent search that understands various query types."""
     results = []
+
+    # Direct category matches
     for category, recipes in recipes_db.items():
         if category in query_lower:
             results.extend(recipes)
+
+    # Cuisine-based search
+    cuisine_matches = _search_by_cuisine(query_lower)
+    results.extend(cuisine_matches)
+
+    # Ingredient-based search
+    ingredient_matches = _search_by_ingredients(query_lower)
+    results.extend(ingredient_matches)
+
+    # Broad category search (meat, vegetarian, etc.)
+    broad_matches = _search_broad_categories(query_lower)
+    results.extend(broad_matches)
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_results = []
+    for recipe in results:
+        recipe_id = recipe['name']
+        if recipe_id not in seen:
+            seen.add(recipe_id)
+            unique_results.append(recipe)
+
+    return unique_results
+
+def _search_by_cuisine(query_lower):
+    """Search recipes by cuisine type."""
+    results = []
+    cuisine_map = {
+        'american': 'American',
+        'asian': 'Asian',
+        'italian': 'Italian',
+        'georgian': 'Georgian',
+        'usa': 'American',
+        'chinese': 'Asian',
+        'japanese': 'Asian',
+        'korean': 'Asian',
+        'thai': 'Asian',
+        'indian': 'Asian'
+    }
+
+    for cuisine_keyword, cuisine_name in cuisine_map.items():
+        if cuisine_keyword in query_lower:
+            for category, recipes in recipes_db.items():
+                for recipe in recipes:
+                    if recipe.get('cuisine', '').lower() == cuisine_name.lower():
+                        results.append(recipe)
+
+    return results
+
+def _search_by_ingredients(query_lower):
+    """Search recipes that contain specific ingredients."""
+    results = []
+    ingredient_keywords = {
+        'chicken': ['chicken'],
+        'beef': ['beef'],
+        'pork': ['pork'],
+        'fish': ['fish', 'salmon', 'tuna'],
+        'pasta': ['pasta', 'spaghetti', 'penne'],
+        'rice': ['rice'],
+        'cheese': ['cheese', 'parmesan', 'mozzarella'],
+        'tomato': ['tomato'],
+        'onion': ['onion'],
+        'garlic': ['garlic'],
+        'egg': ['egg'],
+        'milk': ['milk'],
+        'butter': ['butter'],
+        'flour': ['flour'],
+        'bread': ['bread']
+    }
+
+    for ingredient_keyword, ingredient_list in ingredient_keywords.items():
+        if ingredient_keyword in query_lower:
+            for category, recipes in recipes_db.items():
+                for recipe in recipes:
+                    recipe_ingredients = ' '.join(recipe['ingredients']).lower()
+                    if any(ing in recipe_ingredients for ing in ingredient_list):
+                        results.append(recipe)
+
+    return results
+
+def _search_broad_categories(query_lower):
+    """Search by broad categories like meat, vegetarian, etc."""
+    results = []
+
+    # Meat dishes
+    if any(word in query_lower for word in ['meat', 'protein', 'chicken', 'beef', 'pork', 'lamb']):
+        meat_ingredients = ['chicken', 'beef', 'pork', 'lamb', 'meat']
+        for category, recipes in recipes_db.items():
+            for recipe in recipes:
+                recipe_text = ' '.join(recipe['ingredients'] + [recipe['name']]).lower()
+                if any(ing in recipe_text for ing in meat_ingredients):
+                    results.append(recipe)
+
+    # Vegetarian dishes
+    if any(word in query_lower for word in ['vegetarian', 'veggie', 'plant-based']):
+        for category, recipes in recipes_db.items():
+            for recipe in recipes:
+                recipe_text = ' '.join(recipe['ingredients']).lower()
+                meat_ingredients = ['chicken', 'beef', 'pork', 'lamb', 'fish', 'bacon', 'pancetta']
+                if not any(meat in recipe_text for meat in meat_ingredients):
+                    results.append(recipe)
+
+    # Dairy-free dishes
+    if any(word in query_lower for word in ['dairy-free', 'dairy free']):
+        for category, recipes in recipes_db.items():
+            for recipe in recipes:
+                recipe_text = ' '.join(recipe['ingredients']).lower()
+                dairy_ingredients = ['cheese', 'milk', 'butter', 'cream', 'yogurt']
+                if not any(dairy in recipe_text for dairy in dairy_ingredients):
+                    results.append(recipe)
+
     return results
 
 def _format_recipe_response(results, query):
@@ -163,7 +276,7 @@ def _format_recipe_response(results, query):
             response += f"**Instructions:** {recipe['instructions']}\n\n"
         return response
     else:
-        return f"No recipes found for '{query}'. Try searching for chicken, pasta, or Georgian dishes like 'ხაჭაპური', 'ხინკალი', 'საჭმელი', or 'ქართული'."
+        return f"No recipes found for '{query}'. Try searching for:\n• Chicken, pasta, or cheese dishes\n• Italian, Asian, or Georgian cuisine\n• Vegetarian or meat-based recipes\n• Specific ingredients like 'garlic' or 'tomato'\n• Or ask me directly about cooking tips!"
 
 # Initialize the agent (global for Streamlit)
 @st.cache_resource
@@ -185,18 +298,25 @@ def get_agent():
         agent = ChatAgent(
             chat_client=chat_client,
             name="CookingAssistant",
-            instructions="""You are a helpful cooking AI assistant. Your main capabilities are:
-- Searching for recipes based on ingredients, cuisine type, or keywords
-- Extracting ingredients from recipe texts
-- Providing cooking advice and tips
-- Suggesting recipe modifications
+            instructions="""You are a helpful cooking AI assistant with extensive recipe knowledge. Your main capabilities are:
 
-When users ask to search for recipes, use the search_recipes tool.
-When users provide recipe text and ask to extract ingredients, use the extract_ingredients tool.
-For general cooking questions, answer directly using your knowledge.
-Be friendly, informative, and encouraging.
+RECIPE SEARCH: Use the search_recipes tool for various types of queries:
+- By ingredients: "chicken recipes", "cheese dishes", "pasta recipes"
+- By cuisine: "italian cuisine", "asian food", "georgian food"
+- By dietary preferences: "vegetarian recipes", "meat dishes", "dairy-free"
+- By specific dishes: "khachapuri", "khinkali", "carbonara"
+- By cooking method: "grilled", "stir-fry", "baked"
 
-Always respond in a helpful and engaging way, using emojis where appropriate.""",
+INGREDIENT EXTRACTION: When users provide recipe text, use extract_ingredients to parse out the ingredients list.
+
+Be intelligent about search queries:
+- "Chicken" → find all chicken-based recipes
+- "Italian" → find Italian cuisine recipes
+- "Vegetarian" → find meat-free recipes
+- "Cheese" → find recipes containing cheese
+- "Georgian" → find traditional Georgian dishes
+
+Always respond helpfully with cooking tips, recipe suggestions, and encouragement. Use emojis to make responses engaging!""",
             tools=[extract_ingredients, search_recipes],
         )
         return agent
@@ -219,22 +339,30 @@ def setup_sidebar(agent):
         st.header("🎯 Quick Recipe Ideas")
         st.write("Try these searches:")
 
-        if st.button("🍗 Chicken Recipes"):
-            st.session_state.quick_query = "chicken"
-        if st.button("🍝 Pasta Recipes"):
-            st.session_state.quick_query = "pasta"
-        if st.button("🇬🇪 Georgian Food"):
-            st.session_state.quick_query = "საჭმელი"
-        if st.button("🧀 Khachapuri"):
-            st.session_state.quick_query = "ხაჭაპური"
-        if st.button("🥟 Khinkali"):
-            st.session_state.quick_query = "ხინკალი"
+        # Quick search buttons with broader terms
+        quick_searches = {
+            "🍗 Chicken Dishes": "chicken recipes",
+            "🍝 Pasta Dishes": "pasta recipes",
+            "🇬🇪 Georgian Food": "georgian cuisine",
+            "🧀 Khachapuri": "khachapuri",
+            "🥟 Khinkali": "khinkali",
+            "🥩 Meat Dishes": "meat dishes",
+            "🥕 Vegetarian": "vegetarian recipes",
+            "🧀 Cheese Dishes": "cheese recipes",
+            "🍅 Italian Food": "italian cuisine",
+            "🥢 Asian Food": "asian cuisine"
+        }
+
+        for button_text, search_query in quick_searches.items():
+            if st.button(button_text):
+                st.session_state.quick_query = search_query
 
         st.divider()
         st.write("💡 **Tips:**")
         st.write("- Ask for ingredient extraction")
         st.write("- Search by cuisine type")
-        st.write("- Get cooking advice")
+        st.write("- Try 'vegetarian' or 'meat dishes'")
+        st.write("- Search by ingredients like 'chicken' or 'cheese'")
 
         # Clear chat history
         if st.button("🗑️ Clear Chat History"):

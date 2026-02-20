@@ -66,15 +66,56 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
                 'name': 'იმერული ხაჭაპური (Imeruli Khachapuri)',
                 'ingredients': ['500g flour', '300g sulguni cheese', '200ml milk', '50g butter', '1 egg', '1 tsp sugar', 'Salt to taste'],
                 'instructions': 'Mix dough with flour, milk, egg, sugar, salt. Roll out, add cheese filling, fold and bake at 200°C for 20 minutes.',
-                'cuisine': 'Georgian'
+                'cuisine': 'Georgian',
+                'image': '🧀'
+            },
+            {
+                'name': 'მეგრული ხაჭაპური (Megruli Khachapuri)',
+                'ingredients': ['500g flour', '400g sulguni cheese', '100g butter', '1 egg', '200ml milk', 'Salt to taste'],
+                'instructions': 'Make dough, fill with cheese, fold into boat shape, add butter on top. Bake at 220°C for 15-20 minutes.',
+                'cuisine': 'Georgian',
+                'image': '🚣'
             }
         ],
         'ხინკალი': [  # Georgian dumplings
             {
                 'name': 'ხინკალი (Khinkali)',
                 'ingredients': ['500g ground meat (pork/beef mix)', '2 onions', '500g flour', '200ml water', 'Salt, pepper, coriander'],
-                'instructions': 'Make dough, fill with spiced meat mixture, twist dumplings, boil for 10-15 minutes.',
-                'cuisine': 'Georgian'
+                'instructions': 'Make dough, fill with spiced meat mixture, twist dumplings, boil for 10-15 minutes. Eat by hand, drink juice first!',
+                'cuisine': 'Georgian',
+                'image': '🥟'
+            }
+        ],
+        'საჭმელი': [  # General Georgian food
+            {
+                'name': 'ჩურჩხელა (Churchkhela)',
+                'ingredients': ['Grape juice', 'Walnuts', 'Flour', 'Sugar'],
+                'instructions': 'String walnuts on thread, dip in thickened grape juice mixed with flour. Dry for several days.',
+                'cuisine': 'Georgian',
+                'image': '🥜'
+            },
+            {
+                'name': 'ბადრიჯანი (Badrijan) - Eggplant Rolls',
+                'ingredients': ['4 eggplants', '200g walnuts', '3 cloves garlic', 'Fresh coriander', 'Sunflower oil', 'Salt'],
+                'instructions': 'Grill eggplants, roll with walnut-garlic paste, serve cold.',
+                'cuisine': 'Georgian',
+                'image': '🍆'
+            },
+            {
+                'name': 'ლობიო (Lobio) - Bean Stew',
+                'ingredients': ['500g red beans', '2 onions', '3 cloves garlic', 'Fresh coriander', 'Sunflower oil', 'Adjika (Georgian spice)', 'Salt'],
+                'instructions': 'Soak beans overnight, cook with onions, garlic, spices. Mash slightly and serve hot.',
+                'cuisine': 'Georgian',
+                'image': '🫘'
+            }
+        ],
+        'ქართული': [  # Georgian cuisine
+            {
+                'name': 'ოჯახური ხარჩო (Ojakhuri Kharcho) - Beef Soup',
+                'ingredients': ['500g beef', '2 onions', '3 potatoes', '2 tbsp tkemali (plum sauce)', 'Fresh coriander', 'Black pepper', 'Bay leaves'],
+                'instructions': 'Cook beef, add onions, potatoes, spices. Simmer for 1.5 hours. Serve with fresh bread.',
+                'cuisine': 'Georgian',
+                'image': '🍲'
             }
         ]
     }
@@ -99,33 +140,35 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
     if results:
         response = f"Found {len(results)} recipe(s) for '{query}':\n\n"
         for i, recipe in enumerate(results, 1):
-            response += f"**Recipe {i}: {recipe['name']}** ({recipe['cuisine']})\n"
-            response += "**Ingredients:**\n" + "\n".join(f"- {ing}" for ing in recipe['ingredients']) + "\n"
+            emoji = recipe.get('image', '🍽️')
+            response += f"{emoji} **Recipe {i}: {recipe['name']}** ({recipe['cuisine']})\n"
+            response += "**Ingredients:**\n" + "\n".join(f"• {ing}" for ing in recipe['ingredients']) + "\n"
             response += f"**Instructions:** {recipe['instructions']}\n\n"
         return response
     else:
-        return f"No recipes found for '{query}'. Try searching for chicken, pasta, or Georgian dishes like 'ხაჭაპური' or 'ხინკალი'."
+        return f"No recipes found for '{query}'. Try searching for chicken, pasta, or Georgian dishes like 'ხაჭაპური', 'ხინკალი', 'საჭმელი', or 'ქართული'."
 
 # Initialize the agent (global for Streamlit)
 @st.cache_resource
 def get_agent():
-    # Initialize OpenAI client for GitHub models
-    openai_client = AsyncOpenAI(
-        base_url="https://models.github.ai/inference",
-        api_key=st.secrets["GITHUB_TOKEN"],
-    )
+    try:
+        # Initialize OpenAI client for GitHub models
+        openai_client = AsyncOpenAI(
+            base_url="https://models.github.ai/inference",
+            api_key=st.secrets["GITHUB_TOKEN"],
+        )
 
-    # Create chat client
-    chat_client = OpenAIChatClient(
-        async_client=openai_client,
-        model_id="openai/gpt-4o"  # Using GPT-4o for good text generation
-    )
+        # Create chat client
+        chat_client = OpenAIChatClient(
+            async_client=openai_client,
+            model_id="openai/gpt-4o"  # Using GPT-4o for good text generation
+        )
 
-    # Create the cooking assistant agent
-    agent = ChatAgent(
-        chat_client=chat_client,
-        name="CookingAssistant",
-        instructions="""You are a helpful cooking AI assistant. Your main capabilities are:
+        # Create the cooking assistant agent
+        agent = ChatAgent(
+            chat_client=chat_client,
+            name="CookingAssistant",
+            instructions="""You are a helpful cooking AI assistant. Your main capabilities are:
 - Searching for recipes based on ingredients, cuisine type, or keywords
 - Extracting ingredients from recipe texts
 - Providing cooking advice and tips
@@ -134,14 +177,54 @@ def get_agent():
 When users ask to search for recipes, use the search_recipes tool.
 When users provide recipe text and ask to extract ingredients, use the extract_ingredients tool.
 For general cooking questions, answer directly using your knowledge.
-Be friendly, informative, and encouraging.""",
-        tools=[extract_ingredients, search_recipes],
-    )
-    return agent
+Be friendly, informative, and encouraging.
+
+Always respond in a helpful and engaging way, using emojis where appropriate.""",
+            tools=[extract_ingredients, search_recipes],
+        )
+        return agent
+    except Exception as e:
+        st.error(f"Failed to initialize AI agent: {e}")
+        st.stop()
 
 def main():
+    st.set_page_config(
+        page_title="🍳 Cooking AI Agent",
+        page_icon="🍳",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+
     st.title("🍳 Cooking AI Agent")
     st.write("Chat with me about recipes, ingredients, or cooking tips!")
+
+    # Sidebar with quick options
+    with st.sidebar:
+        st.header("🎯 Quick Recipe Ideas")
+        st.write("Try these searches:")
+
+        if st.button("🍗 Chicken Recipes"):
+            st.session_state.quick_query = "chicken"
+        if st.button("🍝 Pasta Recipes"):
+            st.session_state.quick_query = "pasta"
+        if st.button("🇬🇪 Georgian Food"):
+            st.session_state.quick_query = "საჭმელი"
+        if st.button("🧀 Khachapuri"):
+            st.session_state.quick_query = "ხაჭაპური"
+        if st.button("🥟 Khinkali"):
+            st.session_state.quick_query = "ხინკალი"
+
+        st.divider()
+        st.write("💡 **Tips:**")
+        st.write("- Ask for ingredient extraction")
+        st.write("- Search by cuisine type")
+        st.write("- Get cooking advice")
+
+        # Clear chat history
+        if st.button("🗑️ Clear Chat History"):
+            st.session_state.messages = []
+            st.session_state.thread = agent.get_new_thread()
+            st.rerun()
 
     agent = get_agent()
 
@@ -151,31 +234,39 @@ def main():
     if 'thread' not in st.session_state:
         st.session_state.thread = agent.get_new_thread()
 
+    # Handle quick queries from sidebar
+    if 'quick_query' in st.session_state and st.session_state.quick_query:
+        prompt = st.session_state.quick_query
+        st.session_state.quick_query = None  # Reset
+    else:
+        prompt = None
+
     # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     # Chat input
-    if prompt := st.chat_input("Ask me about cooking..."):
-        # Add user message to history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    if prompt or (prompt := st.chat_input("Ask me about cooking...")):
+        if prompt:
+            # Add user message to history
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
 
-        # Get agent response
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
-                    result = asyncio.run(agent.run(prompt, thread=st.session_state.thread))
-                    response = result.text
-                    st.markdown(response)
-                    # Add assistant message to history
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-                except Exception as e:
-                    error_msg = f"An error occurred: {e}"
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+            # Get agent response
+            with st.chat_message("assistant"):
+                with st.spinner("👨‍🍳 Cooking up an answer..."):
+                    try:
+                        result = asyncio.run(agent.run(prompt, thread=st.session_state.thread))
+                        response = result.text
+                        st.markdown(response)
+                        # Add assistant message to history
+                        st.session_state.messages.append({"role": "assistant", "content": response})
+                    except Exception as e:
+                        error_msg = f"😞 An error occurred: {e}"
+                        st.error(error_msg)
+                        st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
 if __name__ == "__main__":
     main()

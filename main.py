@@ -67,14 +67,14 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
                 'ingredients': ['500g flour', '300g sulguni cheese', '200ml milk', '50g butter', '1 egg', '1 tsp sugar', 'Salt to taste'],
                 'instructions': 'Mix dough with flour, milk, egg, sugar, salt. Roll out, add cheese filling, fold and bake at 200°C for 20 minutes.',
                 'cuisine': 'Georgian',
-                'image': '🧀'
+                'image': 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=400&h=300&fit=crop'
             },
             {
                 'name': 'მეგრული ხაჭაპური (Megruli Khachapuri)',
                 'ingredients': ['500g flour', '400g sulguni cheese', '100g butter', '1 egg', '200ml milk', 'Salt to taste'],
                 'instructions': 'Make dough, fill with cheese, fold into boat shape, add butter on top. Bake at 220°C for 15-20 minutes.',
                 'cuisine': 'Georgian',
-                'image': '🚣'
+                'image': 'https://images.unsplash.com/photo-1579954115566-e66808b81b2e?w=400&h=300&fit=crop'
             }
         ],
         'ხინკალი': [  # Georgian dumplings
@@ -83,7 +83,7 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
                 'ingredients': ['500g ground meat (pork/beef mix)', '2 onions', '500g flour', '200ml water', 'Salt, pepper, coriander'],
                 'instructions': 'Make dough, fill with spiced meat mixture, twist dumplings, boil for 10-15 minutes. Eat by hand, drink juice first!',
                 'cuisine': 'Georgian',
-                'image': '🥟'
+                'image': 'https://images.unsplash.com/photo-1551782450-17144efb5723?w=400&h=300&fit=crop'
             }
         ],
         'საჭმელი': [  # General Georgian food
@@ -92,21 +92,21 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
                 'ingredients': ['Grape juice', 'Walnuts', 'Flour', 'Sugar'],
                 'instructions': 'String walnuts on thread, dip in thickened grape juice mixed with flour. Dry for several days.',
                 'cuisine': 'Georgian',
-                'image': '🥜'
+                'image': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop'
             },
             {
                 'name': 'ბადრიჯანი (Badrijan) - Eggplant Rolls',
                 'ingredients': ['4 eggplants', '200g walnuts', '3 cloves garlic', 'Fresh coriander', 'Sunflower oil', 'Salt'],
                 'instructions': 'Grill eggplants, roll with walnut-garlic paste, serve cold.',
                 'cuisine': 'Georgian',
-                'image': '🍆'
+                'image': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop'
             },
             {
                 'name': 'ლობიო (Lobio) - Bean Stew',
                 'ingredients': ['500g red beans', '2 onions', '3 cloves garlic', 'Fresh coriander', 'Sunflower oil', 'Adjika (Georgian spice)', 'Salt'],
                 'instructions': 'Soak beans overnight, cook with onions, garlic, spices. Mash slightly and serve hot.',
                 'cuisine': 'Georgian',
-                'image': '🫘'
+                'image': 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop'
             }
         ],
         'ქართული': [  # Georgian cuisine
@@ -115,7 +115,7 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
                 'ingredients': ['500g beef', '2 onions', '3 potatoes', '2 tbsp tkemali (plum sauce)', 'Fresh coriander', 'Black pepper', 'Bay leaves'],
                 'instructions': 'Cook beef, add onions, potatoes, spices. Simmer for 1.5 hours. Serve with fresh bread.',
                 'cuisine': 'Georgian',
-                'image': '🍲'
+                'image': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop'
             }
         ]
     }

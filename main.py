@@ -247,8 +247,10 @@ def main():
     if 'quick_query' in st.session_state and st.session_state.quick_query:
         initial_value = st.session_state.quick_query
         st.session_state.quick_query = None  # Reset after use
+        input_key = f"user_input_{len(st.session_state.messages)}"  # Unique key to clear
     else:
         initial_value = ""
+        input_key = "user_input"
 
     # Chat input with text input and button
     col1, col2 = st.columns([4, 1])
@@ -256,7 +258,7 @@ def main():
         user_input = st.text_input(
             "Type your cooking question:",
             value=initial_value,
-            key="user_input",
+            key=input_key,
             placeholder="Ask about recipes, ingredients, or cooking tips..."
         )
     with col2:
@@ -284,9 +286,6 @@ def main():
                     error_msg = f"😞 An error occurred: {e}"
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
-
-        # Clear the input after sending
-        st.session_state.user_input = ""
 
 if __name__ == "__main__":
     main()

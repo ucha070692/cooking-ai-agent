@@ -31,63 +31,80 @@ def search_recipes(query: Annotated[str, "Keywords or ingredients to search for 
     """
     Search for recipes based on query.
     """
-    # Dummy implementation - in a real app, this would query a database or API
+    # Enhanced recipe database with Georgian options
+    recipes_db = {
+        'chicken': [
+            {
+                'name': 'Grilled Chicken Breast',
+                'ingredients': ['4 boneless chicken breasts', '2 tbsp olive oil', 'Salt and pepper to taste', '1 tsp garlic powder'],
+                'instructions': 'Marinate chicken in oil and spices, grill for 6-7 minutes per side.',
+                'cuisine': 'American'
+            },
+            {
+                'name': 'Chicken Stir-Fry',
+                'ingredients': ['1 lb chicken breast, sliced', '2 cups mixed vegetables', '3 tbsp soy sauce', '1 tbsp sesame oil', '2 cloves garlic, minced'],
+                'instructions': 'Stir-fry chicken and vegetables, add sauce, serve over rice.',
+                'cuisine': 'Asian'
+            }
+        ],
+        'pasta': [
+            {
+                'name': 'Spaghetti Carbonara',
+                'ingredients': ['200g spaghetti', '100g pancetta', '2 eggs', '50g grated Parmesan', 'Black pepper'],
+                'instructions': 'Cook pasta, fry pancetta, mix with eggs and cheese.',
+                'cuisine': 'Italian'
+            },
+            {
+                'name': 'Pesto Pasta',
+                'ingredients': ['300g pasta', '2 cups fresh basil', '1/2 cup pine nuts', '1/2 cup olive oil', '2 cloves garlic', '1/2 cup Parmesan'],
+                'instructions': 'Blend basil, nuts, garlic, oil; toss with cooked pasta and cheese.',
+                'cuisine': 'Italian'
+            }
+        ],
+        'ხაჭაპური': [  # Georgian cheese bread
+            {
+                'name': 'იმერული ხაჭაპური (Imeruli Khachapuri)',
+                'ingredients': ['500g flour', '300g sulguni cheese', '200ml milk', '50g butter', '1 egg', '1 tsp sugar', 'Salt to taste'],
+                'instructions': 'Mix dough with flour, milk, egg, sugar, salt. Roll out, add cheese filling, fold and bake at 200°C for 20 minutes.',
+                'cuisine': 'Georgian'
+            }
+        ],
+        'ხინკალი': [  # Georgian dumplings
+            {
+                'name': 'ხინკალი (Khinkali)',
+                'ingredients': ['500g ground meat (pork/beef mix)', '2 onions', '500g flour', '200ml water', 'Salt, pepper, coriander'],
+                'instructions': 'Make dough, fill with spiced meat mixture, twist dumplings, boil for 10-15 minutes.',
+                'cuisine': 'Georgian'
+            }
+        ]
+    }
+
     query_lower = query.lower()
-    if 'chicken' in query_lower:
-        return """
-Found recipes for chicken:
 
-Recipe 1: Grilled Chicken Breast
-Ingredients:
-- 4 boneless chicken breasts
-- 2 tbsp olive oil
-- Salt and pepper to taste
-- 1 tsp garlic powder
-Instructions: Marinate chicken in oil and spices, grill for 6-7 minutes per side.
-
-Recipe 2: Chicken Stir-Fry
-Ingredients:
-- 1 lb chicken breast, sliced
-- 2 cups mixed vegetables
-- 3 tbsp soy sauce
-- 1 tbsp sesame oil
-- 2 cloves garlic, minced
-Instructions: Stir-fry chicken and vegetables, add sauce, serve over rice.
-"""
-    elif 'pasta' in query_lower:
-        return """
-Found recipes for pasta:
-
-Recipe 1: Spaghetti Carbonara
-Ingredients:
-- 200g spaghetti
-- 100g pancetta
-- 2 eggs
-- 50g grated Parmesan
-- Black pepper
-Instructions: Cook pasta, fry pancetta, mix with eggs and cheese.
-
-Recipe 2: Pesto Pasta
-Ingredients:
-- 300g pasta
-- 2 cups fresh basil
-- 1/2 cup pine nuts
-- 1/2 cup olive oil
-- 2 cloves garlic
-- 1/2 cup Parmesan
-Instructions: Blend basil, nuts, garlic, oil; toss with cooked pasta and cheese.
-"""
+    # Check for Georgian keywords
+    georgian_keywords = ['ხაჭაპური', 'ხინკალი', 'საჭმელი', 'ქართული', 'იმერული']
+    if any(keyword in query_lower for keyword in georgian_keywords):
+        results = []
+        for key in recipes_db:
+            if key in georgian_keywords:
+                for recipe in recipes_db[key]:
+                    results.append(recipe)
     else:
-        return f"""
-Sample Recipe based on '{query}':
+        # Search by ingredients or keywords
+        results = []
+        for category, recipes in recipes_db.items():
+            if category in query_lower:
+                results.extend(recipes)
 
-Recipe: Simple {query.title()} Dish
-Ingredients:
-- Main ingredient: {query}
-- Seasonings: salt, pepper
-- Oil for cooking
-Instructions: Season and cook the main ingredient to taste.
-"""
+    if results:
+        response = f"Found {len(results)} recipe(s) for '{query}':\n\n"
+        for i, recipe in enumerate(results, 1):
+            response += f"**Recipe {i}: {recipe['name']}** ({recipe['cuisine']})\n"
+            response += "**Ingredients:**\n" + "\n".join(f"- {ing}" for ing in recipe['ingredients']) + "\n"
+            response += f"**Instructions:** {recipe['instructions']}\n\n"
+        return response
+    else:
+        return f"No recipes found for '{query}'. Try searching for chicken, pasta, or Georgian dishes like 'ხაჭაპური' or 'ხინკალი'."
 
 # Initialize the agent (global for Streamlit)
 @st.cache_resource

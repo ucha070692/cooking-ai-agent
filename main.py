@@ -198,6 +198,9 @@ def main():
     st.title("🍳 Cooking AI Agent")
     st.write("Chat with me about recipes, ingredients, or cooking tips!")
 
+    # Initialize agent first
+    agent = get_agent()
+
     # Sidebar with quick options
     with st.sidebar:
         st.header("🎯 Quick Recipe Ideas")
@@ -225,8 +228,6 @@ def main():
             st.session_state.messages = []
             st.session_state.thread = agent.get_new_thread()
             st.rerun()
-
-    agent = get_agent()
 
     # Session state for conversation
     if 'messages' not in st.session_state:

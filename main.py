@@ -235,39 +235,58 @@ def main():
     if 'thread' not in st.session_state:
         st.session_state.thread = agent.get_new_thread()
 
-    # Handle quick queries from sidebar
-    if 'quick_query' in st.session_state and st.session_state.quick_query:
-        prompt = st.session_state.quick_query
-        st.session_state.quick_query = None  # Reset
-    else:
-        prompt = None
+    # Chat interface
+    st.subheader("💬 Chat with the Cooking Assistant")
 
     # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Chat input
-    if prompt or (prompt := st.chat_input("Ask me about cooking...")):
-        if prompt:
-            # Add user message to history
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+    # Handle quick queries from sidebar
+    if 'quick_query' in st.session_state and st.session_state.quick_query:
+        initial_value = st.session_state.quick_query
+        st.session_state.quick_query = None  # Reset after use
+    else:
+        initial_value = ""
 
-            # Get agent response
-            with st.chat_message("assistant"):
-                with st.spinner("👨‍🍳 Cooking up an answer..."):
-                    try:
-                        result = asyncio.run(agent.run(prompt, thread=st.session_state.thread))
-                        response = result.text
-                        st.markdown(response)
-                        # Add assistant message to history
-                        st.session_state.messages.append({"role": "assistant", "content": response})
-                    except Exception as e:
-                        error_msg = f"😞 An error occurred: {e}"
-                        st.error(error_msg)
-                        st.session_state.messages.append({"role": "assistant", "content": error_msg})
+    # Chat input with text input and button
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        user_input = st.text_input(
+            "Type your cooking question:",
+            value=initial_value,
+            key="user_input",
+            placeholder="Ask about recipes, ingredients, or cooking tips..."
+        )
+    with col2:
+        send_button = st.button("Send 📤", use_container_width=True)
+
+    # Process input
+    if send_button and user_input.strip():
+        prompt = user_input.strip()
+
+        # Add user message to history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Get agent response
+        with st.chat_message("assistant"):
+            with st.spinner("👨‍🍳 Cooking up an answer..."):
+                try:
+                    result = asyncio.run(agent.run(prompt, thread=st.session_state.thread))
+                    response = result.text
+                    st.markdown(response)
+                    # Add assistant message to history
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                except Exception as e:
+                    error_msg = f"😞 An error occurred: {e}"
+                    st.error(error_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+        # Clear the input after sending
+        st.session_state.user_input = ""
 
 if __name__ == "__main__":
     main()

@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from typing import Annotated
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Load environment variables
 load_dotenv()
@@ -346,7 +347,13 @@ def setup_sidebar(agent):
         st.write("- Try 'vegetarian' or 'meat dishes'")
         st.write("- Search by ingredients like 'chicken' or 'cheese'")
 
-        # Clear chat history
+        st.divider()
+
+        # Chat controls
+        if st.button("⬇️ Scroll to Bottom"):
+            st.session_state.scroll_to_bottom = True
+            st.rerun()
+
         if st.button("🗑️ Clear Chat History"):
             st.session_state.messages = []
             st.session_state.thread = agent.get_new_thread()
@@ -361,9 +368,28 @@ def initialize_session_state(agent):
 
 def display_chat_history():
     """Display the chat message history."""
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    chat_container = st.container()
+
+    with chat_container:
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+    # Auto-scroll to bottom when new messages are added
+    if st.session_state.get('scroll_to_bottom', False):
+        st.session_state.scroll_to_bottom = False
+        # Use JavaScript to scroll to bottom
+        st.components.v1.html(
+            """
+            <script>
+                // Scroll to bottom after a short delay to ensure content is rendered
+                setTimeout(function() {
+                    window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+                }, 100);
+            </script>
+            """,
+            height=0
+        )
 
 def get_user_input():
     """Get user input from text field and send button."""
@@ -403,10 +429,15 @@ def process_user_message(user_input, agent):
 
                 # Add assistant message to history
                 st.session_state.messages.append({"role": "assistant", "content": response})
+
+                # Auto-scroll to bottom after new message
+                st.session_state.scroll_to_bottom = True
+
             except Exception as e:
                 error_msg = f"😞 An error occurred: {e}"
                 st.error(error_msg)
                 st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                st.session_state.scroll_to_bottom = True
 
 def display_recipe_gallery(response):
     """Display recipe gallery with images when recipes are found."""

@@ -328,36 +328,36 @@ Always respond helpfully with cooking tips, recipe suggestions, and encouragemen
 def setup_page_config():
     """Configure the Streamlit page settings."""
     st.set_page_config(
-        page_title="🍳 Cooking AI Agent",
+        page_title="🍳 Cooking AI Assistant",
         page_icon="🍳",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="collapsed"  # Start collapsed for cleaner look
     )
 
 def setup_sidebar(agent):
-    """Set up the sidebar with controls."""
+    """Set up the minimal sidebar."""
     with st.sidebar:
-        st.header("🍳 Cooking Assistant")
-        st.write("Your AI cooking companion!")
+        st.title("🍳 Cooking AI")
 
-        st.divider()
-        st.write("💡 **Tips:**")
-        st.write("- Ask for ingredient extraction")
-        st.write("- Search by cuisine type")
-        st.write("- Try 'vegetarian' or 'meat dishes'")
-        st.write("- Search by ingredients like 'chicken' or 'cheese'")
+        st.markdown("---")
 
-        st.divider()
-
-        # Chat controls
-        if st.button("⬇️ Scroll to Bottom"):
-            st.session_state.scroll_to_bottom = True
-            st.rerun()
-
-        if st.button("🗑️ Clear Chat History"):
+        # Quick actions
+        if st.button("🆕 New Chat", use_container_width=True):
             st.session_state.messages = []
             st.session_state.thread = agent.get_new_thread()
             st.rerun()
+
+        st.markdown("---")
+
+        # Tips (collapsible)
+        with st.expander("💡 Tips", expanded=False):
+            st.write("• Ask for recipes by cuisine")
+            st.write("• Search by ingredients")
+            st.write("• Try 'vegetarian' or 'meat dishes'")
+            st.write("• Extract ingredients from text")
+
+        st.markdown("---")
+        st.caption("Built with ❤️ using AI")
 
 def initialize_session_state(agent):
     """Initialize session state variables."""
@@ -367,8 +367,9 @@ def initialize_session_state(agent):
         st.session_state.thread = agent.get_new_thread()
 
 def display_chat_history():
-    """Display the chat message history."""
-    chat_container = st.container()
+    """Display the chat message history in a clean chat interface."""
+    # Create a container for the chat messages
+    chat_container = st.container(height=600, border=False)
 
     with chat_container:
         for message in st.session_state.messages:
@@ -392,19 +393,32 @@ def display_chat_history():
         )
 
 def get_user_input():
-    """Get user input from text field and send button."""
-    # Chat input with text input and button
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        user_input = st.text_input(
-            "Type your cooking question:",
-            key="user_input",
-            placeholder="Ask about recipes, ingredients, or cooking tips..."
-        )
-    with col2:
-        send_button = st.button("Send 📤", use_container_width=True)
+    """Get user input from chat input field."""
+    # Chat input at the bottom (like typical AI chat interfaces)
+    if not st.session_state.messages:  # Show welcome message for empty chat
+        st.markdown("""
+        <div style='text-align: center; color: #666; margin: 40px 0;'>
+            <h2>👋 Welcome to Cooking AI Assistant!</h2>
+            <p>Ask me about recipes, ingredients, or cooking tips. I can help you find recipes by cuisine, ingredients, or dietary preferences!</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    return user_input, send_button
+    # Chat input at bottom
+    with st.container():
+        # Add some spacing
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Create columns for input and send button
+        col1, col2 = st.columns([6, 1])
+
+        with col1:
+            user_input = st.chat_input(
+                placeholder="Ask about recipes, ingredients, or cooking tips...",
+                key="chat_input"
+            )
+
+        # The chat_input automatically handles Enter to send
+        return user_input, user_input is not None and user_input.strip()
 
 def process_user_message(user_input, agent):
     """Process user input and generate AI response."""
@@ -471,21 +485,16 @@ def display_recipe_gallery(response):
 def main():
     setup_page_config()
 
-    st.title("🍳 Cooking AI Agent")
-    st.write("Chat with me about recipes, ingredients, or cooking tips!")
-
     # Initialize agent first
     agent = get_agent()
 
     setup_sidebar(agent)
     initialize_session_state(agent)
 
-    # Chat interface
-    st.subheader("💬 Chat with the Cooking Assistant")
-
+    # Main chat interface (like typical AI chat apps)
     display_chat_history()
 
-    # Get user input
+    # Get user input (at bottom of chat)
     user_input, send_button = get_user_input()
 
     # Process input
